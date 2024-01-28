@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+      time: "14:58"
+      # Poland Standard Time (UTC +01:00)
+      timezone: "Europe/Warsaw"
