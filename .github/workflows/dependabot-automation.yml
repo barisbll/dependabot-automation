@@ -1,0 +1,54 @@
+name: Dependabot Auto Merge
+on: pull_request
+
+permissions:
+  pull-requests: write
+
+jobs:
+  test:
+    name: Test PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm test
+  merge-pr:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+        - name: Dependabot metadata
+          id: metadata
+          uses: dependabot/fetch-metadata@v1
+        - name: Approve and merge PR
+          run: |
+            gh pr review --approve "$PR_URL"
+            gh pr merge --auto --squash "$PR_URL"
+          env:
+            PR_URL: ${{github.event.pull_request.html_url}}
+            GH_TOKEN: ${{ github.token }}
+  create-release-branch:
+    runs-on: ubuntu-latest
+    needs: merge-pr
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+      - name: Create release-candidate branch if not exists
+        run: |
+          git fetch origin
+          if git show-ref --quiet refs/remotes/origin/release-candidate; then
+            echo "Release candidate branch exists" 
+            git checkout release-candidate
+            git config pull.rebase false
+            git config --global user.name "dependabot-automerge"
+            git config --global user.email "dependabot-automerge@test.com"
+            git pull origin development
+            git push origin release-candidate
+          else
+            echo "Release candidate branch does not exist" 
+            git checkout -b release-candidate
+            git push origin release-candidate
+          fi          
