@@ -9,7 +9,7 @@
   "author": "Baris Balli",
   "license": "ISC",
   "dependencies": {
-    "express": "4.20",
+    "express": "4.21",
     "lodash": "^4.17.19"
   },
   "devDependencies": {
